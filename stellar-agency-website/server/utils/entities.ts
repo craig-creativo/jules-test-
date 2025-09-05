@@ -18,13 +18,14 @@ export function analyzeEntities(doc: any) {
   const people = doc.people().out('array').map((p:string) => p.toLowerCase());
   const places = doc.places().out('array').map((p:string) => p.toLowerCase());
   const organizations = doc.organizations().out('array').map((o:string) => o.toLowerCase());
-  const topics = doc.nouns().out('array').map((n:string) => n.toLowerCase().trim().replace(/'s$/, ''));
+
+  // Get multi-word noun phrases as keyphrases
+  const keyphrases = doc.nounPhrases().out('array');
 
   return {
     people: getFrequency(people),
     places: getFrequency(places),
     organizations: getFrequency(organizations),
-    // Also return top 10 topics for general analysis
-    topics: getFrequency(topics).slice(0, 10),
+    keyphrases: getFrequency(keyphrases).slice(0, 10), // Top 10 keyphrases
   };
 }
