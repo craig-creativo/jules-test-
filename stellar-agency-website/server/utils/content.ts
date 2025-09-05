@@ -1,4 +1,4 @@
-import { fleschKincaid } from 'text-readability';
+import * as readability from 'text-readability';
 
 export function analyzeContent(doc: any, text: string) {
   const wordCount = doc.wordCount();
@@ -6,7 +6,8 @@ export function analyzeContent(doc: any, text: string) {
   let readabilityScore = 0;
   try {
     // The library can sometimes throw errors on very short or unusual text.
-    readabilityScore = fleschKincaid(text);
+    // Correctly call the function from the imported namespace.
+    readabilityScore = readability.fleschKincaid(text);
   } catch (e) {
     console.warn("Could not calculate readability score.", e);
   }
