@@ -2,11 +2,6 @@ import { ofetch } from 'ofetch';
 import * as cheerio from 'cheerio';
 import nlp from 'compromise';
 
-// Extend compromise with a plugin for topics/keywords
-// @ts-ignore
-import topics from 'compromise/types/plugins/topics';
-nlp.plugin(topics);
-
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const url = query.url as string;
@@ -29,9 +24,9 @@ export default defineEventHandler(async (event) => {
     const bodyText = $('body').text();
     const fullText = `${title}. ${description}. ${bodyText}`;
 
-    // 3. Process the text with compromise
+    // 3. Process the text with compromise to get nouns
     const doc = nlp(fullText);
-    const topics = doc.topics().json();
+    const nouns = doc.nouns().out('array').map((n: string) => n.toLowerCase().trim().replace(/'s$/, ''));
 
     const nodesMap = new Map<string, { id: string; group: string; val: number }>();
     const linksSet = new Set<string>();
@@ -40,31 +35,30 @@ export default defineEventHandler(async (event) => {
     const pageHost = new URL(url).hostname;
     nodesMap.set(pageHost, { id: pageHost, group: 'page', val: 50 });
 
-    // 4. Build nodes from topics
-    topics.forEach((topic: any) => {
-      const text = topic.text.toLowerCase().trim();
-      if (text && text.length > 2 && text !== pageHost) {
-        const existingNode = nodesMap.get(text);
+    // 4. Build nodes from nouns
+    nouns.forEach((noun: string) => {
+      if (noun && noun.length > 2 && noun !== pageHost) {
+        const existingNode = nodesMap.get(noun);
         if (existingNode) {
           existingNode.val += 2; // Increase value for frequency
         } else {
-          nodesMap.set(text, { id: text, group: 'topic', val: 10 });
+          nodesMap.set(noun, { id: noun, group: 'topic', val: 10 });
         }
 
         // Link topic to the main page
-        const linkKey = `${pageHost}>${text}`;
+        const linkKey = `${pageHost}>${noun}`;
         linksSet.add(linkKey);
       }
     });
 
-    // 5. Build links (simple co-occurrence in sentences for now)
+    // 5. Build links (co-occurrence in sentences)
     doc.sentences().forEach(sentence => {
-      const sentenceTopics = sentence.topics().out('array').map((t:string) => t.toLowerCase().trim());
-      if (sentenceTopics.length > 1) {
-        for (let i = 0; i < sentenceTopics.length; i++) {
-          for (let j = i + 1; j < sentenceTopics.length; j++) {
-            const source = sentenceTopics[i];
-            const target = sentenceTopics[j];
+      const sentenceNouns = sentence.nouns().out('array').map((n:string) => n.toLowerCase().trim().replace(/'s$/, ''));
+      if (sentenceNouns.length > 1) {
+        for (let i = 0; i < sentenceNouns.length; i++) {
+          for (let j = i + 1; j < sentenceNouns.length; j++) {
+            const source = sentenceNouns[i];
+            const target = sentenceNouns[j];
             if (source && target && source !== target) {
               // Ensure link is always in the same order to avoid duplicates
               const linkKey = [source, target].sort().join('>');
