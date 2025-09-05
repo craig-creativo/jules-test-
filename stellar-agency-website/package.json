@@ -1,0 +1,26 @@
+{
+    "name": "stellar-agency-website",
+    "private": true,
+    "scripts": {
+        "build": "nuxt build",
+        "dev": "nuxt dev",
+        "generate": "nuxt generate",
+        "preview": "nuxt preview",
+        "postinstall": "nuxt prepare"
+    },
+    "devDependencies": {
+        "@nuxt/devtools": "latest",
+        "@nuxtjs/tailwindcss": "^6.8.4",
+        "nuxt": "^3.8.0"
+    },
+    "dependencies": {
+        "@nuxt/image": "^1.0.0",
+        "@nuxtjs/sitemap": "^7.4.3",
+        "@tailwindcss/typography": "^0.5.16",
+        "3d-force-graph": "^1.78.4",
+        "cheerio": "^1.1.2",
+        "compromise": "^14.14.4",
+        "gsap": "^3.12.2",
+        "vue-force-graph": "^0.1.2"
+    }
+}
